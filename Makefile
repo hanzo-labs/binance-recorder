@@ -40,5 +40,5 @@ create-server:
 create-network:
 	docker network create binance-recorder-net
 
-run: run-app run-mongo
+run: run-mongo run-app
 create: create-server create-network

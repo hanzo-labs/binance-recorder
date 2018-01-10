@@ -150,7 +150,10 @@ go = ->
   setTimeout go, 60000
 
 # Mongodb
-MongoClient.connect 'mongodb://localhost:27017', (err, cl)->
+MongoClient.connect 'mongodb://binance-recorder-mongo:27017', (err, cl)->
+  if err?
+    console.log 'connect() error', err
+
   client = cl
   go()
 
