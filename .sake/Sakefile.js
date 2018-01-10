@@ -24,8 +24,6 @@ task('build:js', 'build js', function () {
     cache: false,
     output: 'app.js',
     entry: 'src/app.coffee',
-    commonjs: true,
-    external: false,
     compilers: {
       coffee: {
         version: 2

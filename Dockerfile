@@ -14,5 +14,5 @@ RUN npm install
 # Copy rest of the app
 COPY . /app
 
-CMD sake start
+CMD ["npm", "start"]
 

@@ -1,0 +1,17 @@
+# version: '2'
+
+# # Define the services/containers to be run
+# services:
+#   binance-recorder: #name of your service
+#     build: ./ # specify the directory of the Dockerfile
+#     links:
+#       - mongo # link this service to the database service
+#     depends_on:
+#       - mongo
+
+#   mongo: # name of the service
+#     image: mongo # specify image to build container from
+#     volumes:
+#       - ./mongo:/data/db
+#     ports:
+#       - "27017:27017"
