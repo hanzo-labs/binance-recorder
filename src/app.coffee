@@ -1,5 +1,6 @@
 # import binance from 'node-binance-api'
-binance = require 'node-binance-api'
+binance     = require 'node-binance-api'
+MongoClient = require 'mongodb'
 
 binance.options
   APIKEY:    'KdVTR61jfhhOj26FXTLDfg4CcvpVlkGV4Zj4COgh1xwdHY3Sug21o96g0MkeR8YN'
@@ -36,6 +37,9 @@ periods = [
   # '1d'
   # '1w'
   # '1M'
+
+# Mongodb client
+client = null
 
 # Main loop
 go = ->
@@ -75,7 +79,7 @@ go = ->
     console.log 'bookTickers() error', err
 
   Promise.all(p1s).then ->
-    console.log 'Phase 1', dict
+    # console.log 'Phase 1', dict
 
     # Phase 2 promises
     p2s = []
@@ -92,14 +96,14 @@ go = ->
         console.log 'depth() error', err
 
       offset = 0
-      # Seems like overkill, we
+
       for period in periods
         p2s.push new Promise((resolve, reject) ->
           do (period, code) ->
-            # stagget the calls so we don't spam it to death
+            # stagger the calls so we don't spam it to death
             setTimeout ->
               # Historic Candle Sticks
-              console.log offset, code, period
+              # console.log offset, code, period
               binance.publicRequest baseUrl+'v1/klines', {symbol: code, interval: period, limit: 1}, (ticks) ->
                 lastTick = ticks[ticks.length - 1]
                 [time, open, high, low, close, volume, closeTime, assetVolume, trades, buyBaseVolume, buyAssetVolume, ignored] = lastTick
@@ -118,13 +122,35 @@ go = ->
                   buyAssetVolume: parseFloat buyAssetVolume
                   ignored:        parseFloat ignored
 
-                console.log 'candlesticks()', dict[code]
+                # console.log 'candlesticks()', dict[code]
                 resolve dict
-            , offset * 100
+            , offset * 200
             # increment offset
             offset++
           ).catch (err)->
             console.log 'candlesticks() error', err
 
-  # setTimeout go, 10000
-go()
+    Promise.all(p2s).then ->
+      # Get collection
+      col = client.db('binance').collection('records')
+
+      datas = []
+      for code, data of dict
+        data.code = code
+        datas.push data
+
+      # console.log 'datas', datas
+
+      col.insert datas, {w: 1}, (err, result) ->
+        if err?
+          console.log 'insert() error', err
+        else
+          console.log 'insert() success'
+
+  setTimeout go, 60000
+
+# Mongodb
+MongoClient.connect 'mongodb://localhost:27017', (err, cl)->
+  client = cl
+  go()
+
